@@ -12,6 +12,7 @@ import { Calendar, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 
+
 const StockDashboard = () => {
   // State management
   const [stockData, setStockData] = useState([]);
@@ -26,6 +27,7 @@ const StockDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [weeklyPredictions, setWeeklyPredictions] = useState(null);
+  const [retraining, setRetraining] = useState(false);
 
   // Debug effect for data verification
   useEffect(() => {
@@ -58,6 +60,41 @@ const StockDashboard = () => {
       setError(err.message || 'An error occurred while fetching data');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const retrainModel = async () => {
+    try {
+      setRetraining(true);
+      setError(null);
+      
+      // Call the retrain endpoint
+      const response = await fetch('http://localhost:5000/api/retrain', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.status === 'success') {
+        console.log('Model retrained successfully:', data.metrics);
+        // After successful retraining, fetch all data again
+        await fetchAllData();
+      } else {
+        throw new Error(data.error || 'Retraining failed');
+      }
+      
+    } catch (err) {
+      console.error('Error retraining model:', err);
+      setError('Failed to retrain model: ' + err.message);
+    } finally {
+      setRetraining(false);
     }
   };
 
@@ -364,13 +401,14 @@ const StockDashboard = () => {
     <div className="container mx-auto px-4 py-8">
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Stock Price Analysis</h1>
+        <h1 className="text-3xl font-bold text-gray-900">UNL Stock Price Analysis</h1>
         <button 
-          onClick={fetchAllData}
+          onClick={retrainModel}
           className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+          disabled={retraining}
         >
-          <RefreshCw className="w-4 h-4" />
-          Refresh Data
+           <RefreshCw className={`w-4 h-4 ${retraining ? 'animate-spin' : ''}`} />
+           {retraining ? 'Retraining...' : 'Refresh & Retrain'}
         </button>
       </div>
       

@@ -8,6 +8,9 @@ from models.trading_strategy import TradingStrategy
 import os
 import logging
 from datetime import datetime
+import shutil
+from train import prepare_training_data as prepare_training_data
+from train import evaluate_model as evaluate_model
 
 # Set up logging
 logging.basicConfig(
@@ -274,6 +277,75 @@ def get_market_metrics():
             'error': str(e),
             'status': 'error'
         }), 400
+@app.route('/api/retrain', methods=['POST'])
+def retrain_model():
+    try:
+        # Define paths
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        saved_models_dir = os.path.join(current_dir, 'models', 'saved_models')
+        
+        # Delete existing saved models directory and recreate it
+        if os.path.exists(saved_models_dir):
+            shutil.rmtree(saved_models_dir)
+        os.makedirs(saved_models_dir, exist_ok=True)
+        
+        logger.info("Deleted existing saved models")
+        
+        # Load and prepare data
+        df = load_stock_data()
+        prepared_data = prepare_training_data(df)
+        
+        # Split data
+        train_size = int(len(prepared_data) * 0.8)
+        train_data = prepared_data[:train_size]
+        test_data = prepared_data[train_size:]
+        
+        # Initialize a new model instance
+        global model
+        model = StockPricePredictor(sequence_length=60)
+        
+        # Train the model
+        logger.info("Training new model...")
+        history = model.train(
+            data=train_data,
+            epochs=50,
+            batch_size=32,
+            validation_split=0.2
+        )
+        
+        # Evaluate model
+        evaluation_metrics = evaluate_model(model, test_data)
+        
+        # Save the new model
+        model_path = os.path.join(saved_models_dir, 'stock_model.h5')
+        scaler_path = os.path.join(saved_models_dir, 'scaler.pkl')
+        model.save_model(model_path, scaler_path)
+        
+        final_metrics = {
+            'loss': float(history.history['loss'][-1]),
+            'val_loss': float(history.history['val_loss'][-1]) if 'val_loss' in history.history else None,
+            'epochs_trained': len(history.history['loss']),
+            'mse': float(evaluation_metrics['mse']),
+            'rmse': float(evaluation_metrics['rmse']),
+            'mae': float(evaluation_metrics['mae']),
+            'mape': float(evaluation_metrics['mape'])
+        }
+        
+        logger.info(f"Model retrained successfully. Final metrics: {final_metrics}")
+        
+        return jsonify({
+            'message': 'Model retrained successfully',
+            'metrics': final_metrics,
+            'status': 'success'
+        })
+        
+    except Exception as e:
+        logger.error(f"Error in model retraining: {str(e)}")
+        return jsonify({
+            'error': str(e),
+            'status': 'error'
+        }), 400
+
     
 
 if __name__ == '__main__':

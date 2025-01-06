@@ -223,3 +223,52 @@ def predict_weekly():
             'error': str(e),
             'status': 'error'
         }), 400
+
+@api.route('/retrain', methods=['POST'])
+def retrain_model():
+    try:
+        # Load the data
+        df = load_stock_data()
+        
+        # Split data into training and testing sets (80-20 split)
+        train_size = int(len(df) * 0.8)
+        train_data = df[:train_size]
+        
+        # Initialize and train model
+        logger.info("Retraining model...")
+        model.sequence_length = 60  # Reset sequence length
+        
+        # Train the model
+        history = model.train(
+            data=train_data,
+            epochs=50,
+            batch_size=32,
+            validation_split=0.2
+        )
+        
+        # Save the retrained model
+        current_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        model_path = os.path.join(current_dir, 'models', 'saved_models', 'stock_model.h5')
+        scaler_path = os.path.join(current_dir, 'models', 'saved_models', 'scaler.pkl')
+        
+        model.save_model(model_path, scaler_path)
+        
+        # Get final metrics from training history
+        final_metrics = {
+            'loss': float(history.history['loss'][-1]),
+            'val_loss': float(history.history['val_loss'][-1]) if 'val_loss' in history.history else None,
+            'epochs_trained': len(history.history['loss'])
+        }
+        
+        return jsonify({
+            'message': 'Model retrained successfully',
+            'metrics': final_metrics,
+            'status': 'success'
+        })
+        
+    except Exception as e:
+        logger.error(f"Error in model retraining: {str(e)}")
+        return jsonify({
+            'error': str(e),
+            'status': 'error'
+        }), 400
