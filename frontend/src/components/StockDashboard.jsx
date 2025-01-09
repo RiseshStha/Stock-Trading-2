@@ -1,17 +1,24 @@
 // StockDashboard.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
-import { Alert, AlertDescription } from './ui/alert';
-import { RefreshCw } from 'lucide-react';
-import TrendAnalysisCard from './TrendAnalysisCard';
-import TradingSignals from './TradingSignal';
-import TemporalAnalysis from './TemporalAnalysis';
-import MarketMetrics from './MarketMertics';
-import StockChart from './StockChart';
-import { Calendar, ArrowUpRight, ArrowDownRight } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-
-
+import { Alert, AlertDescription } from "./ui/alert";
+import { RefreshCw } from "lucide-react";
+import TrendAnalysisCard from "./TrendAnalysisCard";
+import TradingSignals from "./TradingSignal";
+import TemporalAnalysis from "./TemporalAnalysis";
+import MarketMetrics from "./MarketMertics";
+import StockChart from "./StockChart";
+import { Calendar, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
 const StockDashboard = () => {
   // State management
@@ -32,12 +39,12 @@ const StockDashboard = () => {
   // Debug effect for data verification
   useEffect(() => {
     if (stockData.length > 0 && tradingSignals.length > 0) {
-      console.log('Sample stock data date:', stockData[0].Date);
-      console.log('Sample signal date:', tradingSignals[0].date);
-      console.log('Number of trading signals:', tradingSignals.length);
-      console.log('Number of price points:', stockData.length);
-      console.log('Trading Signals:', tradingSignals);
-      console.log('Stock Data:', stockData);
+      console.log("Sample stock data date:", stockData[0].Date);
+      console.log("Sample signal date:", tradingSignals[0].date);
+      console.log("Number of trading signals:", tradingSignals.length);
+      console.log("Number of price points:", stockData.length);
+      console.log("Trading Signals:", tradingSignals);
+      console.log("Stock Data:", stockData);
     }
   }, [stockData, tradingSignals]);
 
@@ -53,11 +60,11 @@ const StockDashboard = () => {
         fetchHistoricalData(),
         fetchTradingData(),
         fetchTemporalData(),
-        fetchMarketMetrics()
+        fetchMarketMetrics(),
       ]);
     } catch (err) {
-      console.error('Error fetching data:', err);
-      setError(err.message || 'An error occurred while fetching data');
+      console.error("Error fetching data:", err);
+      setError(err.message || "An error occurred while fetching data");
     } finally {
       setLoading(false);
     }
@@ -67,32 +74,31 @@ const StockDashboard = () => {
     try {
       setRetraining(true);
       setError(null);
-      
+
       // Call the retrain endpoint
-      const response = await fetch('http://localhost:5000/api/retrain', {
-        method: 'POST',
+      const response = await fetch("http://localhost:5000/api/retrain", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       });
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const data = await response.json();
-      
-      if (data.status === 'success') {
-        console.log('Model retrained successfully:', data.metrics);
+
+      if (data.status === "success") {
+        console.log("Model retrained successfully:", data.metrics);
         // After successful retraining, fetch all data again
         await fetchAllData();
       } else {
-        throw new Error(data.error || 'Retraining failed');
+        throw new Error(data.error || "Retraining failed");
       }
-      
     } catch (err) {
-      console.error('Error retraining model:', err);
-      setError('Failed to retrain model: ' + err.message);
+      console.error("Error retraining model:", err);
+      setError("Failed to retrain model: " + err.message);
     } finally {
       setRetraining(false);
     }
@@ -100,19 +106,19 @@ const StockDashboard = () => {
 
   const fetchHistoricalData = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/historical');
+      const response = await fetch("http://localhost:5000/api/historical");
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
 
-      if (data.status === 'success') {
+      if (data.status === "success") {
         // Format dates consistently
-        const formattedData = data.data.map(item => ({
+        const formattedData = data.data.map((item) => ({
           ...item,
-          Date: new Date(item.Date).toISOString().split('T')[0]
+          Date: new Date(item.Date).toISOString().split("T")[0],
         }));
-        
+
         const sortedData = [...formattedData].reverse();
         setStockData(sortedData);
         setTrendAnalysis(data.trend_analysis);
@@ -120,13 +126,13 @@ const StockDashboard = () => {
         setSupportResistance(data.support_resistance);
 
         // Prepare data for prediction
-        const priceData = sortedData.map(d => ({
+        const priceData = sortedData.map((d) => ({
           Date: d.Date,
           Open: d.Open || d.Close,
           High: d.High || d.Close,
           Low: d.Low || d.Close,
           Close: d.Close,
-          Volume: d.Volume || 0
+          Volume: d.Volume || 0,
         }));
 
         // Fetch prediction
@@ -139,19 +145,19 @@ const StockDashboard = () => {
 
   const fetchTradingData = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/trading/signals');
+      const response = await fetch("http://localhost:5000/api/trading/signals");
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-      
-      if (data.status === 'success') {
+
+      if (data.status === "success") {
         // Format dates consistently
-        const formattedSignals = data.signals.map(signal => ({
+        const formattedSignals = data.signals.map((signal) => ({
           ...signal,
-          date: new Date(signal.date).toISOString().split('T')[0]
+          date: new Date(signal.date).toISOString().split("T")[0],
         }));
-        console.log('Formatted trading signals:', formattedSignals);
+        console.log("Formatted trading signals:", formattedSignals);
         setTradingSignals(formattedSignals);
         setBacktestResults(data.backtest_results);
       }
@@ -163,31 +169,34 @@ const StockDashboard = () => {
   const fetchPrediction = async (priceData) => {
     try {
       // Daily prediction
-      const dailyResponse = await fetch('http://localhost:5000/api/predict', {
-        method: 'POST',
+      const dailyResponse = await fetch("http://localhost:5000/api/predict", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ prices: priceData }),
       });
-  
+
       // Weekly prediction
-      const weeklyResponse = await fetch('http://localhost:5000/api/predict/weekly', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ prices: priceData }),
-      });
-  
+      const weeklyResponse = await fetch(
+        "http://localhost:5000/api/predict/weekly",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ prices: priceData }),
+        }
+      );
+
       if (!dailyResponse.ok || !weeklyResponse.ok) {
         throw new Error(`HTTP error!`);
       }
-  
+
       const dailyData = await dailyResponse.json();
       const weeklyData = await weeklyResponse.json();
-  
-      if (dailyData.status === 'success' && weeklyData.status === 'success') {
+
+      if (dailyData.status === "success" && weeklyData.status === "success") {
         setPrediction(dailyData.prediction);
         setWeeklyPredictions(weeklyData.weekly_predictions);
         setTrendAnalysis(dailyData.trend_analysis);
@@ -200,13 +209,17 @@ const StockDashboard = () => {
 
   const WeeklyPredictionCard = ({ predictions, lastClose }) => {
     if (!predictions || predictions.length === 0) return null;
-  
-    const data = predictions.map(pred => ({
-      date: new Date(pred.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+
+    const data = predictions.map((pred) => ({
+      date: new Date(pred.date).toLocaleDateString("en-US", {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+      }),
       price: pred.price,
-      confidence: pred.confidence * 100
+      confidence: pred.confidence * 100,
     }));
-  
+
     return (
       <Card className="w-full">
         <CardHeader>
@@ -223,65 +236,106 @@ const StockDashboard = () => {
                 <LineChart data={data}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="date" />
-                  <YAxis 
+                  <YAxis
                     yAxisId="price"
-                    domain={['auto', 'auto']}
+                    domain={["auto", "auto"]}
                     tickFormatter={(value) => `Rs.${value.toLocaleString()}`}
                   />
-                  <YAxis 
+                  <YAxis
                     yAxisId="confidence"
                     orientation="right"
                     domain={[0, 100]}
                     tickFormatter={(value) => `${value}%`}
                   />
-                  <Tooltip 
+                  <Tooltip
                     formatter={(value, name) => [
-                      name === 'Price' ? `Rs.${value.toLocaleString()}` : `${value.toFixed(1)}%`,
-                      name
+                      name === "Price"
+                        ? `Rs.${value.toLocaleString()}`
+                        : `${value.toFixed(1)}%`,
+                      name,
                     ]}
                   />
                   <Legend />
-                  <Line 
+                  <Line
                     yAxisId="price"
-                    type="monotone" 
-                    dataKey="price" 
-                    stroke="#2563eb" 
+                    type="monotone"
+                    dataKey="price"
+                    stroke="#2563eb"
                     strokeWidth={2}
                     name="Price"
                   />
-                  <Line 
+                  <Line
                     yAxisId="confidence"
-                    type="monotone" 
-                    dataKey="confidence" 
-                    stroke="#10b981" 
+                    type="monotone"
+                    dataKey="confidence"
+                    stroke="#10b981"
                     strokeDasharray="5 5"
                     name="Confidence"
                   />
                 </LineChart>
               </ResponsiveContainer>
             </div>
-  
+
             {/* Prediction List */}
             <div className="space-y-3">
               {predictions.map((pred, index) => {
-                const changePercent = ((pred.price - (index === 0 ? lastClose : predictions[index - 1].price)) / 
-                                     (index === 0 ? lastClose : predictions[index - 1].price)) * 100;
+                const changePercent =
+                  ((pred.price -
+                    (index === 0 ? lastClose : predictions[index - 1].price)) /
+                    (index === 0 ? lastClose : predictions[index - 1].price)) *
+                  100;
                 const isPositive = changePercent > 0;
-  
+
                 return (
-                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                  >
                     <div>
-                      <p className="text-sm text-gray-600">
-                        {new Date(pred.date).toLocaleDateString('en-US', { 
-                          weekday: 'long', 
-                          month: 'short', 
-                          day: 'numeric' 
-                        })}
+                    <p className="text-sm text-gray-600">
+  {(() => {
+    // Helper function to adjust days based on the mapping
+    const adjustDay = (dateStr) => {
+      const date = new Date(dateStr);
+      const day = date.getDay(); // Get the day of the week (0 = Sunday, 6 = Saturday)
+
+      // Map days to their new values
+      const dayMapping = {
+        5: 2, // Friday -> Sunday (2 days ahead)
+        6: 2, // Saturday -> Monday (2 days ahead)
+        0: 2, // Sunday -> Tuesday (2 days ahead)
+        1: 2, // Monday -> Wednesday (2 days ahead)
+        2: 2, // Tuesday -> Thursday (2 days ahead)
+        3: 2, // Wednesday -> Friday (2 days ahead)
+        4: 2, // Thursday -> Saturday (2 days ahead)
+      };
+
+      // Increment date based on the mapping
+      date.setDate(date.getDate() + dayMapping[day]);
+      return date;
+    };
+
+    // Adjust and format the date
+    const adjustedDate = adjustDay(pred.date);
+    return adjustedDate.toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'short',
+      day: 'numeric',
+    });
+  })()}
+</p>
+
+
+                      <p className="font-semibold">
+                        Rs. {pred.price.toLocaleString()}
                       </p>
-                      <p className="font-semibold">Rs. {pred.price.toLocaleString()}</p>
                     </div>
                     <div className="text-right">
-                      <div className={`flex items-center gap-1 ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
+                      <div
+                        className={`flex items-center gap-1 ${
+                          isPositive ? "text-green-600" : "text-red-600"
+                        }`}
+                      >
                         {isPositive ? (
                           <ArrowUpRight className="w-4 h-4" />
                         ) : (
@@ -305,13 +359,15 @@ const StockDashboard = () => {
 
   const fetchTemporalData = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/analysis/temporal');
+      const response = await fetch(
+        "http://localhost:5000/api/analysis/temporal"
+      );
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-      
-      if (data.status === 'success') {
+
+      if (data.status === "success") {
         setTemporalPatterns(data.temporal_patterns);
       }
     } catch (err) {
@@ -321,13 +377,13 @@ const StockDashboard = () => {
 
   const fetchMarketMetrics = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/metrics');
+      const response = await fetch("http://localhost:5000/api/metrics");
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-      
-      if (data.status === 'success') {
+
+      if (data.status === "success") {
         setMarketMetrics(data.metrics);
       }
     } catch (err) {
@@ -336,7 +392,7 @@ const StockDashboard = () => {
   };
 
   const PredictionCard = ({ value, lastClose }) => {
-    const changePercent = ((value - lastClose) / lastClose * 100);
+    const changePercent = ((value - lastClose) / lastClose) * 100;
     const isPositive = changePercent > 0;
 
     return (
@@ -350,7 +406,7 @@ const StockDashboard = () => {
               <p className="text-sm text-gray-600">Predicted Close</p>
               <p className="text-3xl font-bold">Rs. {value.toLocaleString()}</p>
             </div>
-            
+
             <div className="pt-4 border-t">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">Last Close</span>
@@ -360,8 +416,13 @@ const StockDashboard = () => {
               </div>
               <div className="flex justify-between items-center mt-2">
                 <span className="text-sm text-gray-600">Expected Change</span>
-                <span className={`font-semibold ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
-                  {isPositive ? '+' : ''}{changePercent.toFixed(2)}%
+                <span
+                  className={`font-semibold ${
+                    isPositive ? "text-green-600" : "text-red-600"
+                  }`}
+                >
+                  {isPositive ? "+" : ""}
+                  {changePercent.toFixed(2)}%
                 </span>
               </div>
             </div>
@@ -385,7 +446,7 @@ const StockDashboard = () => {
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
-        <button 
+        <button
           onClick={fetchAllData}
           className="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
         >
@@ -395,30 +456,35 @@ const StockDashboard = () => {
     );
   }
 
-  const lastClose = stockData.length > 0 ? stockData[stockData.length - 1]?.Close : null;
+  const lastClose =
+    stockData.length > 0 ? stockData[stockData.length - 1]?.Close : null;
 
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">UNL Stock Price Analysis</h1>
-        <button 
+        <h1 className="text-3xl font-bold text-gray-900">
+          UNL Stock Price Analysis
+        </h1>
+        <button
           onClick={retrainModel}
           className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
           disabled={retraining}
         >
-           <RefreshCw className={`w-4 h-4 ${retraining ? 'animate-spin' : ''}`} />
-           {retraining ? 'Retraining...' : 'Refresh & Retrain'}
+          <RefreshCw
+            className={`w-4 h-4 ${retraining ? "animate-spin" : ""}`}
+          />
+          {retraining ? "Retraining..." : "Refresh & Retrain"}
         </button>
       </div>
-      
+
       {/* Market Metrics */}
       {marketMetrics && (
         <div className="mb-8">
           <MarketMetrics metrics={marketMetrics} />
         </div>
       )}
-      
+
       {/* Main Chart */}
       <div className="grid grid-cols-1 gap-6 mb-8">
         <div className="w-full">
@@ -428,8 +494,8 @@ const StockDashboard = () => {
             </CardHeader>
             <CardContent className="p-4">
               <div className="h-[700px]">
-                <StockChart 
-                  data={stockData} 
+                <StockChart
+                  data={stockData}
                   supportResistance={supportResistance}
                   tradingSignals={tradingSignals}
                 />
@@ -442,26 +508,28 @@ const StockDashboard = () => {
 
       {/* Prediction and Trend Analysis */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {prediction && <PredictionCard value={prediction} lastClose={lastClose} />}
-        <TrendAnalysisCard 
+        {prediction && (
+          <PredictionCard value={prediction} lastClose={lastClose} />
+        )}
+        <TrendAnalysisCard
           trend={trendAnalysis}
           performance={performanceMetrics}
           supportResistance={supportResistance}
         />
       </div>
       <div className="lg:col-span-2">
-    {weeklyPredictions && (
-      <WeeklyPredictionCard 
-        predictions={weeklyPredictions}
-        lastClose={lastClose}
-      />
-    )}
-  </div>
-      
+        {weeklyPredictions && (
+          <WeeklyPredictionCard
+            predictions={weeklyPredictions}
+            lastClose={lastClose}
+          />
+        )}
+      </div>
+
       {/* Trading Signals and Temporal Analysis */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {tradingSignals.length > 0 && backtestResults && (
-          <TradingSignals 
+          <TradingSignals
             signals={tradingSignals}
             backtestResults={backtestResults}
           />
