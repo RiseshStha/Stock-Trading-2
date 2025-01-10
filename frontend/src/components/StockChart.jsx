@@ -219,7 +219,6 @@ const StockChart = ({ data, supportResistance, tradingSignals }) => {
             <div className="space-y-2">
               <p>• Hold CTRL + Mouse Wheel to zoom in/out</p>
               <p>• Click and drag to pan when zoomed</p>
-              <p>• Double-click to reset zoom</p>
             </div>
             <div className="space-y-2">
               <p>• Pinch to zoom on touch devices</p>
